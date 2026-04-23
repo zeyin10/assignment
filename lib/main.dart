@@ -14,10 +14,10 @@ void main() {
 class CustomScrollBehavior extends MaterialScrollBehavior {
   @override
   Set<PointerDeviceKind> get dragDevices => {
-        PointerDeviceKind.touch,
-        PointerDeviceKind.mouse,
-        PointerDeviceKind.trackpad
-      };
+    PointerDeviceKind.touch,
+    PointerDeviceKind.mouse,
+    PointerDeviceKind.trackpad
+  };
 }
 
 class CinemaScope extends StatefulWidget {
@@ -40,30 +40,34 @@ class _CinemaScopeState extends State<CinemaScope> {
   /// Manage user's orders submitted
   final OrderManager _orderManager = OrderManager();
 
+  /// Manage user's favorite cinemas
+  final FavoriteManager _favoriteManager = FavoriteManager();
+
   late final _router = GoRouter(
     initialLocation: '/login',
     refreshListenable: _auth,
     redirect: _appRedirect,
     routes: [
       GoRoute(
-        path: '/login',
-        builder: (context, state) =>
-          LoginPage(
-              onLogIn: (Credentials credentials) async {
-            _auth.signIn(credentials.username, credentials.password);
-          })),
+          path: '/login',
+          builder: (context, state) =>
+              LoginPage(
+                  onLogIn: (Credentials credentials) async {
+                    _auth.signIn(credentials.username, credentials.password);
+                  })),
       GoRoute(
           path: '/:tab',
           builder: (context, state) {
             return Home(
-              auth: _auth,
-              cartManager: _cartManager,
-              ordersManager: _orderManager,
-              changeTheme: changeThemeMode,
-              changeColor: changeColor,
-              colorSelected: colorSelected,
-              tab: int.tryParse(
-                state.pathParameters['tab'] ?? '') ?? 0);
+                auth: _auth,
+                cartManager: _cartManager,
+                ordersManager: _orderManager,
+                favoriteManager: _favoriteManager,
+                changeTheme: changeThemeMode,
+                changeColor: changeColor,
+                colorSelected: colorSelected,
+                tab: int.tryParse(
+                    state.pathParameters['tab'] ?? '') ?? 0);
           },
           routes: [
             GoRoute(
@@ -76,6 +80,7 @@ class _CinemaScopeState extends State<CinemaScope> {
                     cinema: cinema,
                     cartManager: _cartManager,
                     ordersManager: _orderManager,
+                    favoriteManager: _favoriteManager,
                   );
                 }),
           ]),

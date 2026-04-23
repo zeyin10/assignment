@@ -6,3 +6,5 @@ export 'movie_genre.dart';
 export 'order_manager.dart';
 export 'review.dart';
 export 'user.dart';
+
+export 'favorite_manager.dart';

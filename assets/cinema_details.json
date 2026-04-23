@@ -1,0 +1,67 @@
+{
+  "id": "cin_101",
+  "name": "Grand Lumiere Cinema",
+  "address": "12 Abay Avenue, Astana",
+  "attributes": "IMAX, Dolby Atmos, VIP Lounge",
+  "imageUrl": "https://images.unsplash.com/photo-1489599849927-2ee91cede3ba?w=1200",
+  "imageCredits": "Unsplash",
+  "distance": 1.4,
+  "rating": 4.8,
+  "phone": "+7 7172 555 210",
+  "workingHours": "10:00 - 01:00",
+  "description": "Grand Lumiere Cinema is a modern premium cinema in Astana with IMAX technology, Dolby Atmos sound and VIP seating. It is popular among students and families because of comfortable halls, online booking and a large snack zone.",
+  "facilities": [
+    "Free Wi-Fi",
+    "Parking",
+    "Student discount",
+    "VIP hall",
+    "Cafe",
+    "Online booking"
+  ],
+  "genres": [
+    { "name": "Action", "numberOfMovies": 18, "imageUrl": "assets/categories/action.jfif" },
+    { "name": "Drama", "numberOfMovies": 12, "imageUrl": "assets/categories/drama.png" },
+    { "name": "Sci-Fi", "numberOfMovies": 9, "imageUrl": "assets/categories/sci-fi.jfif" },
+    { "name": "Animation", "numberOfMovies": 6, "imageUrl": "assets/categories/animation.jfif" }
+  ],
+  "friendReviews": [
+    {
+      "id": "r1",
+      "profileImageUrl": "assets/profile_pics/person_cesare.jpeg",
+      "comment": "Watched Dune here yesterday. The IMAX hall was amazing and the sound was super clean.",
+      "timestamp": "12"
+    },
+    {
+      "id": "r2",
+      "profileImageUrl": "assets/profile_pics/person_stef.jpeg",
+      "comment": "Seats were comfortable, snacks were fresh, and the ticket booking was fast.",
+      "timestamp": "28"
+    },
+    {
+      "id": "r3",
+      "profileImageUrl": "assets/profile_pics/person_ray.jpeg",
+      "comment": "Pretty good place for weekend movies. VIP hall is expensive but looks realistic for a premium cinema.",
+      "timestamp": "43"
+    }
+  ],
+  "items": [
+    {
+      "name": "Dune: Part Two (IMAX)",
+      "description": "Epic sci-fi adventure in premium IMAX format with powerful sound and large-screen visuals.",
+      "price": 24.99,
+      "imageUrl": "https://images.unsplash.com/photo-1534447677768-be436bb09401?w=900"
+    },
+    {
+      "name": "Oppenheimer (Dolby)",
+      "description": "Biographical thriller presented in Dolby Atmos for a sharper and more immersive experience.",
+      "price": 21.50,
+      "imageUrl": "https://images.unsplash.com/photo-1518770660439-4636190af475?w=900"
+    },
+    {
+      "name": "Inside Out 2 (Family)",
+      "description": "Popular family animation with comfortable seating and discounted student tickets.",
+      "price": 14.75,
+      "imageUrl": "https://images.unsplash.com/photo-1560169897-fc0cdbdfa4d5?w=900"
+    }
+  ]
+}

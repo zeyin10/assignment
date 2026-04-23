@@ -4,11 +4,13 @@ import '../models/models.dart';
 class CinemaLandscapeCard extends StatefulWidget {
   final Cinema cinema;
   final Function() onTap;
+  final FavoriteManager favoriteManager;
 
   const CinemaLandscapeCard({
     super.key,
     required this.cinema,
     required this.onTap,
+    required this.favoriteManager,
   });
 
   @override
@@ -17,10 +19,6 @@ class CinemaLandscapeCard extends StatefulWidget {
 
 class _CinemaLandscapeCardState extends State<CinemaLandscapeCard>
     with SingleTickerProviderStateMixin {
-  bool _isFavorited = false;
-  bool _isHovered = false;
-
-  // --- Animation 3: Card hover lift ---
   late AnimationController _liftCtrl;
   late Animation<double> _elevationAnim;
   late Animation<double> _scaleAnim;
@@ -38,10 +36,17 @@ class _CinemaLandscapeCardState extends State<CinemaLandscapeCard>
     _scaleAnim = Tween<double>(begin: 1.0, end: 1.03).animate(
       CurvedAnimation(parent: _liftCtrl, curve: Curves.easeOut),
     );
+
+    widget.favoriteManager.addListener(_favoriteListener);
+  }
+
+  void _favoriteListener() {
+    if (mounted) setState(() {});
   }
 
   @override
   void dispose() {
+    widget.favoriteManager.removeListener(_favoriteListener);
     _liftCtrl.dispose();
     super.dispose();
   }
@@ -51,14 +56,13 @@ class _CinemaLandscapeCardState extends State<CinemaLandscapeCard>
     final textTheme = Theme.of(context)
         .textTheme
         .apply(displayColor: Theme.of(context).colorScheme.onSurface);
+    final isFavorited = widget.favoriteManager.isFavorite(widget.cinema);
 
     return MouseRegion(
       onEnter: (_) {
-        setState(() => _isHovered = true);
         _liftCtrl.forward();
       },
       onExit: (_) {
-        setState(() => _isHovered = false);
         _liftCtrl.reverse();
       },
       cursor: SystemMouseCursors.click,
@@ -81,28 +85,32 @@ class _CinemaLandscapeCardState extends State<CinemaLandscapeCard>
                 borderRadius:
                     const BorderRadius.vertical(top: Radius.circular(8.0)),
                 child: AspectRatio(
-                    aspectRatio: 2,
-                    child: Stack(
-                      fit: StackFit.expand,
-                      children: [
-                        Image.asset(widget.cinema.imageUrl, fit: BoxFit.cover),
-                        Positioned(
-                          top: 4.0,
-                          right: 4.0,
-                          child: _AnimatedBookmarkButton(
-                            isFavorited: _isFavorited,
-                            onToggle: () {
-                              setState(() => _isFavorited = !_isFavorited);
-                            },
-                          ),
+                  aspectRatio: 2,
+                  child: Stack(
+                    fit: StackFit.expand,
+                    children: [
+                      Image.asset(widget.cinema.imageUrl, fit: BoxFit.cover),
+                      Positioned(
+                        top: 4.0,
+                        right: 4.0,
+                        child: _AnimatedBookmarkButton(
+                          isFavorited: isFavorited,
+                          onToggle: () {
+                            widget.favoriteManager.toggleFavorite(widget.cinema);
+                          },
                         ),
-                      ],
-                    )),
+                      ),
+                    ],
+                  ),
+                ),
               ),
               ListTile(
                 title: Text(widget.cinema.name, style: textTheme.titleSmall),
-                subtitle: Text(widget.cinema.attributes,
-                    maxLines: 1, style: textTheme.bodySmall),
+                subtitle: Text(
+                  widget.cinema.attributes,
+                  maxLines: 1,
+                  style: textTheme.bodySmall,
+                ),
                 onTap: widget.onTap,
               ),
             ],
@@ -113,7 +121,6 @@ class _CinemaLandscapeCardState extends State<CinemaLandscapeCard>
   }
 }
 
-/// Bookmark button with a pop animation on press.
 class _AnimatedBookmarkButton extends StatefulWidget {
   final bool isFavorited;
   final VoidCallback onToggle;
@@ -162,7 +169,8 @@ class _AnimatedBookmarkButtonState extends State<_AnimatedBookmarkButton>
       ),
       child: IconButton(
         icon: Icon(
-            widget.isFavorited ? Icons.bookmark : Icons.bookmark_border),
+          widget.isFavorited ? Icons.bookmark : Icons.bookmark_border,
+        ),
         iconSize: 30.0,
         color: Theme.of(context).colorScheme.primary,
         onPressed: () {

@@ -1,7 +1,7 @@
 name: yummy
 description: Yummy is a food platform for customers to order food from a wide variety of restaruants
 
-publish_to: "none" # Remove this line if you wish to publish to pub.dev
+publish_to: "none"
 
 version: 1.0.0+1
 

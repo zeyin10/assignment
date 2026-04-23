@@ -1,0 +1,85 @@
+{
+  "results": [
+    {
+      "id": "cin_101",
+      "name": "Grand Lumiere Cinema",
+      "address": "12 Abay Avenue, Astana",
+      "attributes": "IMAX, Dolby Atmos, VIP Lounge",
+      "imageUrl": "https://images.unsplash.com/photo-1489599849927-2ee91cede3ba?w=1200",
+      "imageCredits": "Unsplash",
+      "distance": 1.4,
+      "rating": 4.8,
+      "items": [
+        {
+          "name": "Dune: Part Two (IMAX)",
+          "description": "Epic sci-fi adventure in premium IMAX format with powerful sound and large-screen visuals.",
+          "price": 24.99,
+          "imageUrl": "https://images.unsplash.com/photo-1534447677768-be436bb09401?w=900"
+        },
+        {
+          "name": "Oppenheimer (Dolby)",
+          "description": "Biographical thriller presented in Dolby Atmos for a sharper and more immersive experience.",
+          "price": 21.50,
+          "imageUrl": "https://images.unsplash.com/photo-1518770660439-4636190af475?w=900"
+        },
+        {
+          "name": "Inside Out 2 (Family)",
+          "description": "Popular family animation with comfortable seating and discounted student tickets.",
+          "price": 14.75,
+          "imageUrl": "https://images.unsplash.com/photo-1560169897-fc0cdbdfa4d5?w=900"
+        }
+      ]
+    },
+    {
+      "id": "cin_102",
+      "name": "Starlight Multiplex",
+      "address": "45 Turan Avenue, Astana",
+      "attributes": "4DX, Premium Recliners, Cafe",
+      "imageUrl": "https://images.unsplash.com/photo-1517604931442-7e0c8ed2963c?w=1200",
+      "imageCredits": "Unsplash",
+      "distance": 2.7,
+      "rating": 4.6,
+      "items": [
+        {
+          "name": "The Batman (4DX)",
+          "description": "Dark detective story with motion seats and immersive effects in 4DX.",
+          "price": 23.00,
+          "imageUrl": "https://images.unsplash.com/photo-1509347528160-9a9e33742cdb?w=900"
+        },
+        {
+          "name": "Poor Things (VIP)",
+          "description": "Award-winning fantasy drama available in the VIP hall with blanket service.",
+          "price": 26.40,
+          "imageUrl": "https://images.unsplash.com/photo-1485846234645-a62644f84728?w=900"
+        }
+      ]
+    },
+    {
+      "id": "cin_103",
+      "name": "Nova Cineplex",
+      "address": "8 Mangilik El Street, Astana",
+      "attributes": "Luxury, RPX, Private Hall",
+      "imageUrl": "https://images.unsplash.com/photo-1512070679279-8988d32161be?w=1200",
+      "imageCredits": "Unsplash",
+      "distance": 3.1,
+      "rating": 4.5,
+      "items": [
+        {
+          "name": "Furiosa: A Mad Max Saga",
+          "description": "Fast-paced action film in RPX with premium projection and richer contrast.",
+          "price": 19.99,
+          "imageUrl": "https://images.unsplash.com/photo-1501594907352-04cda38ebc29?w=900"
+        },
+        {
+          "name": "Past Lives",
+          "description": "Quiet emotional drama in a smaller luxury hall perfect for evening sessions.",
+          "price": 13.99,
+          "imageUrl": "https://images.unsplash.com/photo-1536440136628-849c177e76a1?w=900"
+        }
+      ]
+    }
+  ],
+  "offset": 0,
+  "number": 3,
+  "totalResults": 6
+}

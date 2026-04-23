@@ -1,0 +1,79 @@
+{
+  "results": [
+    {
+      "id": "cin_104",
+      "name": "The Reel House",
+      "address": "19 Kabanbay Batyr Avenue, Astana",
+      "attributes": "Indie, Art House, Classics",
+      "imageUrl": "https://images.unsplash.com/photo-1616530940355-351fabd9524b?w=1200",
+      "imageCredits": "Unsplash",
+      "distance": 0.9,
+      "rating": 4.9,
+      "items": [
+        {
+          "name": "Anatomy of a Fall",
+          "description": "Critically acclaimed courtroom drama shown in the original language with subtitles.",
+          "price": 12.50,
+          "imageUrl": "https://images.unsplash.com/photo-1560109947-543149eceb16?w=900"
+        },
+        {
+          "name": "Monster",
+          "description": "Award-winning Japanese drama for viewers who enjoy deep storytelling.",
+          "price": 12.00,
+          "imageUrl": "https://images.unsplash.com/photo-1478720568477-152d9b164e26?w=900"
+        }
+      ]
+    },
+    {
+      "id": "cin_105",
+      "name": "Aurora Screens",
+      "address": "77 Respublika Avenue, Astana",
+      "attributes": "Student Deals, Standard, Snack Bar",
+      "imageUrl": "https://images.unsplash.com/photo-1440404653325-ab127d49abc1?w=1200",
+      "imageCredits": "Unsplash",
+      "distance": 4.2,
+      "rating": 4.3,
+      "items": [
+        {
+          "name": "Kung Fu Panda 4",
+          "description": "Animated adventure with affordable tickets and weekend family offers.",
+          "price": 11.99,
+          "imageUrl": "https://images.unsplash.com/photo-1574375927938-d5a98e8ffe85?w=900"
+        },
+        {
+          "name": "Civil War",
+          "description": "Intense action-thriller in the standard hall with late-night sessions.",
+          "price": 15.49,
+          "imageUrl": "https://images.unsplash.com/photo-1497032628192-86f99bcd76bc?w=900"
+        }
+      ]
+    },
+    {
+      "id": "cin_106",
+      "name": "Moonlight Cinema Club",
+      "address": "101 Saryarka Avenue, Astana",
+      "attributes": "Retro Nights, Director's Cuts, Lounge",
+      "imageUrl": "https://images.unsplash.com/photo-1489185078254-c3365d6e359f?w=1200",
+      "imageCredits": "Unsplash",
+      "distance": 5.0,
+      "rating": 4.7,
+      "items": [
+        {
+          "name": "Interstellar (Special Re-Release)",
+          "description": "Special re-release with enhanced sound and evening premium screenings.",
+          "price": 18.99,
+          "imageUrl": "https://images.unsplash.com/photo-1446776811953-b23d57bd21aa?w=900"
+        },
+        {
+          "name": "La La Land",
+          "description": "Romantic musical featured in classic movie night events every Friday.",
+          "price": 13.49,
+          "imageUrl": "https://images.unsplash.com/photo-1487180144351-b8472da7d491?w=900"
+        }
+      ]
+    }
+  ],
+  "offset": 3,
+  "number": 3,
+  "totalResults": 6
+}

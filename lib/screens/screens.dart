@@ -1,4 +1,5 @@
 export 'account_page.dart';
+export 'bookmarks_page.dart';
 export 'checkout_page.dart';
 export 'explore_page.dart';
 export 'login_page.dart';

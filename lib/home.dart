@@ -11,6 +11,7 @@ class Home extends StatefulWidget {
     required this.auth,
     required this.cartManager,
     required this.ordersManager,
+    required this.favoriteManager,
     required this.changeTheme,
     required this.changeColor,
     required this.colorSelected,
@@ -21,6 +22,7 @@ class Home extends StatefulWidget {
   final int tab;
   final CartManager cartManager;
   final OrderManager ordersManager;
+  final FavoriteManager favoriteManager;
   final ColorSelection colorSelected;
   final void Function(bool useLightMode) changeTheme;
   final void Function(int value) changeColor;
@@ -30,53 +32,56 @@ class Home extends StatefulWidget {
 }
 
 class _HomeState extends State<Home> {
-  List<NavigationDestination> appBarDestinations = const [
-    NavigationDestination(
-      icon: Icon(Icons.movie_outlined),
-      label: 'Discover',
-      selectedIcon: Icon(Icons.movie),
-    ),
-    NavigationDestination(
-      icon: Icon(Icons.confirmation_number_outlined),
-      label: 'My Tickets',
-      selectedIcon: Icon(Icons.confirmation_number),
-    ),
-    NavigationDestination(
-      icon: Icon(Icons.person_2_outlined),
-      label: 'Account',
-      selectedIcon: Icon(Icons.person),
-    )
-  ];
+  @override
+  void initState() {
+    super.initState();
+    widget.favoriteManager.addListener(_refresh);
+  }
+
+  void _refresh() {
+    if (mounted) setState(() {});
+  }
+
+  @override
+  void dispose() {
+    widget.favoriteManager.removeListener(_refresh);
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+    final favCount = widget.favoriteManager.count;
+
     final pages = [
       ExplorePage(
         cartManager: widget.cartManager,
         orderManager: widget.ordersManager,
+        favoriteManager: widget.favoriteManager,
       ),
       MyOrdersPage(orderManager: widget.ordersManager),
       AccountPage(
-          onLogOut: (logout) async {
-            widget.auth.signOut();
-          },
-          user: User(
-              firstName: 'Zeyin',
-              lastName: 'A',
-              role: 'Cinema Enthusiast',
-              profileImageUrl: 'assets/profile_pics/person_kevin.jpeg',
-              points: 250,
-              darkMode: true))
+        onLogOut: (logout) async {
+          widget.auth.signOut();
+        },
+        favoriteManager: widget.favoriteManager,
+        user: User(
+          firstName: 'Zeyin',
+          lastName: 'A',
+          role: 'Cinema Enthusiast',
+          profileImageUrl: 'assets/profile_pics/person_kevin.jpeg',
+          points: 250,
+          darkMode: true,
+        ),
+      ),
     ];
 
     return Scaffold(
       appBar: AppBar(
         elevation: 0.0,
-        backgroundColor: Theme.of(context).colorScheme.surface,
+        backgroundColor: colorScheme.surface,
         actions: [
-          ThemeButton(
-            changeThemeMode: widget.changeTheme,
-          ),
+          ThemeButton(changeThemeMode: widget.changeTheme),
           ColorButton(
             changeColor: widget.changeColor,
             colorSelected: widget.colorSelected,
@@ -86,10 +91,37 @@ class _HomeState extends State<Home> {
       body: IndexedStack(index: widget.tab, children: pages),
       bottomNavigationBar: NavigationBar(
         selectedIndex: widget.tab,
+        animationDuration: const Duration(milliseconds: 400),
         onDestinationSelected: (index) {
           context.go('/$index');
         },
-        destinations: appBarDestinations,
+        destinations: [
+          const NavigationDestination(
+            icon: Icon(Icons.movie_outlined),
+            label: 'Discover',
+            selectedIcon: Icon(Icons.movie),
+          ),
+          const NavigationDestination(
+            icon: Icon(Icons.confirmation_number_outlined),
+            label: 'My Tickets',
+            selectedIcon: Icon(Icons.confirmation_number),
+          ),
+          NavigationDestination(
+            icon: favCount > 0
+                ? Badge(
+              label: Text('$favCount'),
+              child: const Icon(Icons.person_2_outlined),
+            )
+                : const Icon(Icons.person_2_outlined),
+            label: 'Account',
+            selectedIcon: favCount > 0
+                ? Badge(
+              label: Text('$favCount'),
+              child: const Icon(Icons.person),
+            )
+                : const Icon(Icons.person),
+          ),
+        ],
       ),
     );
   }

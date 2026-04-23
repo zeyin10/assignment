@@ -9,12 +9,14 @@ class CinemaPage extends StatefulWidget {
   final Cinema cinema;
   final CartManager cartManager;
   final OrderManager ordersManager;
+  final FavoriteManager favoriteManager;
 
   const CinemaPage({
     super.key,
     required this.cinema,
     required this.cartManager,
-    required this.ordersManager
+    required this.ordersManager,
+    required this.favoriteManager,
   });
 
   @override
@@ -28,15 +30,30 @@ class _CinemaPageState extends State<CinemaPage> {
   static const double drawerWidth = 375.0;
   final GlobalKey<ScaffoldState> scaffoldKey = GlobalKey<ScaffoldState>();
 
+  @override
+  void initState() {
+    super.initState();
+    widget.favoriteManager.addListener(_refresh);
+  }
+
+  void _refresh() {
+    if (mounted) setState(() {});
+  }
+
+  @override
+  void dispose() {
+    widget.favoriteManager.removeListener(_refresh);
+    super.dispose();
+  }
+
   double _calculateConstrainedWidth(double screenWidth) {
     return (screenWidth > desktopThreshold
-            ? screenWidth * largeScreenPercentage
-            : screenWidth)
+        ? screenWidth * largeScreenPercentage
+        : screenWidth)
         .clamp(0.0, maxWidth);
   }
 
   int calculateColumnCount(double screenWidth) {
-    const desktopThreshold = 700;
     return screenWidth > desktopThreshold ? 2 : 1;
   }
 
@@ -51,9 +68,22 @@ class _CinemaPageState extends State<CinemaPage> {
   }
 
   SliverAppBar _buildSliverAppBar() {
+    final isFavorited = widget.favoriteManager.isFavorite(widget.cinema);
+    final colorScheme = Theme.of(context).colorScheme;
+
     return SliverAppBar(
       pinned: true,
       expandedHeight: 300.0,
+      actions: [
+        Padding(
+          padding: const EdgeInsets.only(right: 8),
+          child: _AnimatedFavoriteButton(
+            isFavorited: isFavorited,
+            onToggle: () => widget.favoriteManager.toggleFavorite(widget.cinema),
+            colorScheme: colorScheme,
+          ),
+        ),
+      ],
       flexibleSpace: FlexibleSpaceBar(
         background: Center(
           child: Padding(
@@ -63,11 +93,13 @@ class _CinemaPageState extends State<CinemaPage> {
                 Container(
                   margin: const EdgeInsets.only(bottom: 30.0),
                   decoration: BoxDecoration(
-                      color: Colors.grey,
-                      borderRadius: BorderRadius.circular(16.0),
-                      image: DecorationImage(
-                          image: AssetImage(widget.cinema.imageUrl),
-                          fit: BoxFit.cover)),
+                    color: Colors.grey,
+                    borderRadius: BorderRadius.circular(16.0),
+                    image: DecorationImage(
+                      image: AssetImage(widget.cinema.imageUrl),
+                      fit: BoxFit.cover,
+                    ),
+                  ),
                 ),
                 const Positioned(
                   bottom: 0.0,
@@ -159,13 +191,13 @@ class _CinemaPageState extends State<CinemaPage> {
       isScrollControlled: true,
       context: context,
       constraints: const BoxConstraints(maxWidth: 480),
-      builder: (context) =>
-        ItemDetails(
-          item: item,
-          cartManager: widget.cartManager,
-          quantityUpdated: () {
-            setState(() {});
-          },),
+      builder: (context) => ItemDetails(
+        item: item,
+        cartManager: widget.cartManager,
+        quantityUpdated: () {
+          setState(() {});
+        },
+      ),
     );
   }
 
@@ -174,16 +206,17 @@ class _CinemaPageState extends State<CinemaPage> {
       width: drawerWidth,
       child: Drawer(
         child: CheckoutPage(
-        cartManager: widget.cartManager,
-        didUpdate: () {
-          setState(() {});
-        },
-        onSubmit: (order) {
-          widget.ordersManager.addOrder(order);
-          context.pop();
-          context.go('/${CinemaScopeTab.orders.value}');
-        },
-      )),
+          cartManager: widget.cartManager,
+          didUpdate: () {
+            setState(() {});
+          },
+          onSubmit: (order) {
+            widget.ordersManager.addOrder(order);
+            context.pop();
+            context.go('/${CinemaScopeTab.orders.value}');
+          },
+        ),
+      ),
     );
   }
 
@@ -213,6 +246,79 @@ class _CinemaPageState extends State<CinemaPage> {
         child: SizedBox(
           width: constrainedWidth,
           child: _buildCustomScrollView(),
+        ),
+      ),
+    );
+  }
+}
+
+class _AnimatedFavoriteButton extends StatefulWidget {
+  final bool isFavorited;
+  final VoidCallback onToggle;
+  final ColorScheme colorScheme;
+
+  const _AnimatedFavoriteButton({
+    required this.isFavorited,
+    required this.onToggle,
+    required this.colorScheme,
+  });
+
+  @override
+  State<_AnimatedFavoriteButton> createState() =>
+      _AnimatedFavoriteButtonState();
+}
+
+class _AnimatedFavoriteButtonState extends State<_AnimatedFavoriteButton>
+    with SingleTickerProviderStateMixin {
+  late AnimationController _ctrl;
+  late Animation<double> _anim;
+
+  @override
+  void initState() {
+    super.initState();
+    _ctrl = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 300),
+    );
+    _anim = TweenSequence<double>([
+      TweenSequenceItem(tween: Tween(begin: 1.0, end: 1.5), weight: 50),
+      TweenSequenceItem(tween: Tween(begin: 1.5, end: 1.0), weight: 50),
+    ]).animate(CurvedAnimation(parent: _ctrl, curve: Curves.easeInOut));
+  }
+
+  @override
+  void dispose() {
+    _ctrl.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return AnimatedBuilder(
+      animation: _anim,
+      builder: (context, child) => Transform.scale(
+        scale: _anim.value,
+        child: child,
+      ),
+      child: Container(
+        decoration: BoxDecoration(
+          color: widget.colorScheme.surface.withOpacity(0.85),
+          shape: BoxShape.circle,
+        ),
+        child: IconButton(
+          icon: Icon(
+            widget.isFavorited ? Icons.bookmark : Icons.bookmark_border,
+            color: widget.isFavorited
+                ? widget.colorScheme.primary
+                : widget.colorScheme.onSurface,
+          ),
+          tooltip: widget.isFavorited
+              ? 'Remove from favorites'
+              : 'Add to favorites',
+          onPressed: () {
+            _ctrl.forward(from: 0);
+            widget.onToggle();
+          },
         ),
       ),
     );
