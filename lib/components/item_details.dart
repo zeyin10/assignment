@@ -1,19 +1,30 @@
+import 'dart:math';
 import 'package:flutter/material.dart';
-import 'package:uuid/uuid.dart';
 import '../models/models.dart';
 import 'cart_control.dart';
+
+String _uuid() {
+  final rng = Random.secure();
+  final bytes = List<int>.generate(16, (_) => rng.nextInt(256));
+  bytes[6] = (bytes[6] & 0x0f) | 0x40;
+  bytes[8] = (bytes[8] & 0x3f) | 0x80;
+  String hex(int b) => b.toRadixString(16).padLeft(2, '0');
+  final h = bytes.map(hex).join();
+  return '${h.substring(0, 8)}-${h.substring(8, 12)}-'
+      '${h.substring(12, 16)}-${h.substring(16, 20)}-${h.substring(20)}';
+}
 
 class ItemDetails extends StatefulWidget {
   final MovieTicket item;
   final CartManager cartManager;
   final void Function() quantityUpdated;
 
-  const ItemDetails(
-      {Key? key,
-      required this.item,
-      required this.cartManager,
-      required this.quantityUpdated})
-      : super(key: key);
+  const ItemDetails({
+    Key? key,
+    required this.item,
+    required this.cartManager,
+    required this.quantityUpdated,
+  }) : super(key: key);
 
   @override
   State<ItemDetails> createState() => _ItemDetailsState();
@@ -54,9 +65,10 @@ class _ItemDetailsState extends State<ItemDetails> {
     return Align(
       alignment: Alignment.centerLeft,
       child: Container(
-          padding: const EdgeInsets.all(4.0),
-          color: colorTheme.onPrimary,
-          child: const Text('#1 Featured')),
+        padding: const EdgeInsets.all(4.0),
+        color: colorTheme.onPrimary,
+        child: const Text('#1 Featured'),
+      ),
     );
   }
 
@@ -76,10 +88,12 @@ class _ItemDetailsState extends State<ItemDetails> {
   Widget _addToCartControl(MovieTicket item) {
     return CartControl(
       addToCart: (number) {
-        const uuid = Uuid();
-        final uniqueId = uuid.v4();
         final cartItem = CartItem(
-            id: uniqueId, name: item.name, price: item.price, quantity: number);
+          id: _uuid(),
+          name: item.name,
+          price: item.price,
+          quantity: number,
+        );
         setState(() {
           widget.cartManager.addItem(cartItem);
           widget.quantityUpdated();

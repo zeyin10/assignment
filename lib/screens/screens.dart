@@ -1,7 +1,10 @@
 export 'account_page.dart';
 export 'bookmarks_page.dart';
+export 'chat_list_page.dart';
+export 'chat_room_page.dart';
 export 'checkout_page.dart';
+export 'cinema_page.dart';
 export 'explore_page.dart';
 export 'login_page.dart';
 export 'myorders_page.dart';
-export 'cinema_page.dart';
+export 'register_page.dart';

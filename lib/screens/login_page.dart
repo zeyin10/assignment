@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 
-/// Credential Class
 class Credentials {
   Credentials(this.username, this.password);
   final String username;
@@ -9,9 +9,7 @@ class Credentials {
 
 class LoginPage extends StatelessWidget {
   const LoginPage({required this.onLogIn, super.key});
-
-  /// Called when users sign in with [Credentials].
-  final ValueChanged<Credentials> onLogIn;
+  final Future<void> Function(Credentials) onLogIn;
 
   @override
   Widget build(BuildContext context) {
@@ -33,8 +31,9 @@ class LoginPage extends StatelessWidget {
                 ),
                 Expanded(
                   child: FractionallySizedBox(
-                      widthFactor: 0.70,
-                      child: LoginForm(onLogIn: onLogIn)),
+                    widthFactor: 0.70,
+                    child: LoginForm(onLogIn: onLogIn),
+                  ),
                 ),
               ],
             );
@@ -52,235 +51,131 @@ class LoginPage extends StatelessWidget {
 }
 
 class LoginForm extends StatefulWidget {
-  LoginForm({required this.onLogIn, super.key});
-
-  final ValueChanged<Credentials> onLogIn;
+  const LoginForm({required this.onLogIn, super.key});
+  final Future<void> Function(Credentials) onLogIn;
 
   @override
   State<LoginForm> createState() => _LoginFormState();
 }
 
-class _LoginFormState extends State<LoginForm>
-    with SingleTickerProviderStateMixin {
-  final TextEditingController _usernameController = TextEditingController();
-  final TextEditingController _passwordController = TextEditingController();
-
-  // --- Animation 1: Pulsing logo ---
-  late AnimationController _pulseCtrl;
-  late Animation<double> _pulseAnim;
-
-  // --- Animation 2: Fade-in form ---
-  late Animation<double> _fadeAnim;
-  late Animation<Offset> _slideAnim;
-
-  @override
-  void initState() {
-    super.initState();
-    _pulseCtrl = AnimationController(
-      vsync: this,
-      duration: const Duration(milliseconds: 1200),
-    )..repeat(reverse: true);
-
-    _pulseAnim = Tween<double>(begin: 1.0, end: 1.08).animate(
-      CurvedAnimation(parent: _pulseCtrl, curve: Curves.easeInOut),
-    );
-
-    // Fade + slide in from below, plays once on load
-    _fadeAnim = CurvedAnimation(
-      parent: _pulseCtrl,
-      curve: const Interval(0.0, 0.5, curve: Curves.easeOut),
-    );
-    _slideAnim = Tween<Offset>(
-      begin: const Offset(0, 0.15),
-      end: Offset.zero,
-    ).animate(CurvedAnimation(parent: _pulseCtrl, curve: Curves.easeOut));
-  }
+class _LoginFormState extends State<LoginForm> {
+  final _usernameController = TextEditingController();
+  final _passwordController = TextEditingController();
+  bool _loading = false;
+  String? _error;
 
   @override
   void dispose() {
-    _pulseCtrl.dispose();
+    _usernameController.dispose();
+    _passwordController.dispose();
     super.dispose();
+  }
+
+  Future<void> _submit() async {
+    final email    = _usernameController.text.trim();
+    final password = _passwordController.text;
+
+    if (email.isEmpty || password.isEmpty) {
+      setState(() => _error = 'Please enter your email and password.');
+      return;
+    }
+
+    setState(() { _loading = true; _error = null; });
+
+    try {
+      await widget.onLogIn(Credentials(email, password));
+    } catch (e) {
+      if (mounted) setState(() => _error = e.toString());
+    } finally {
+      if (mounted) setState(() => _loading = false);
+    }
   }
 
   @override
   Widget build(BuildContext context) {
-    final colorScheme = Theme.of(context).colorScheme;
+    final theme = Theme.of(context);
 
-    return Padding(
-      padding: const EdgeInsets.all(16.0),
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          // --- Pulsing logo ---
-          AnimatedBuilder(
-            animation: _pulseAnim,
-            builder: (context, child) => Transform.scale(
-              scale: _pulseAnim.value,
-              child: child,
-            ),
-            child: Container(
-              width: 150,
-              height: 150,
-              decoration: BoxDecoration(
-                color: colorScheme.primaryContainer,
-                borderRadius: BorderRadius.circular(24.0),
-                boxShadow: [
-                  BoxShadow(
-                    color: colorScheme.primary.withOpacity(0.35),
-                    blurRadius: 24,
-                    spreadRadius: 4,
-                  ),
-                ],
+    return Center(
+      child: SingleChildScrollView(
+        padding: const EdgeInsets.all(32),
+        child: ConstrainedBox(
+          constraints: const BoxConstraints(maxWidth: 400),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              Icon(Icons.movie_filter_rounded,
+                  size: 72, color: theme.colorScheme.primary),
+              const SizedBox(height: 16),
+              Text('CinemaScope',
+                  textAlign: TextAlign.center,
+                  style: theme.textTheme.headlineMedium?.copyWith(
+                    color: theme.colorScheme.primary,
+                    fontWeight: FontWeight.bold,
+                  )),
+              Text('Your world of movies',
+                  textAlign: TextAlign.center,
+                  style: theme.textTheme.bodyMedium),
+              const SizedBox(height: 40),
+
+              TextField(
+                controller: _usernameController,
+                keyboardType: TextInputType.emailAddress,
+                decoration: const InputDecoration(
+                  labelText: 'Email',
+                  prefixIcon: Icon(Icons.person_outline),
+                  border: OutlineInputBorder(),
+                ),
               ),
-              child: Icon(
-                Icons.movie_filter_rounded,
-                size: 80,
-                color: colorScheme.onPrimaryContainer,
+              const SizedBox(height: 16),
+
+              TextField(
+                controller: _passwordController,
+                obscureText: true,
+                decoration: const InputDecoration(
+                  labelText: 'Password',
+                  prefixIcon: Icon(Icons.lock_outline),
+                  border: OutlineInputBorder(),
+                ),
+                onSubmitted: (_) => _submit(),
               ),
-            ),
-          ),
-          const SizedBox(height: 12),
-          Text(
-            'CinemaScope',
-            style: TextStyle(
-              fontSize: 28,
-              fontWeight: FontWeight.bold,
-              color: colorScheme.primary,
-              letterSpacing: 1.2,
-            ),
-          ),
-          const SizedBox(height: 4),
-          Text(
-            'Your world of movies',
-            style: TextStyle(
-              fontSize: 14,
-              color: colorScheme.onSurfaceVariant,
-            ),
-          ),
-          const SizedBox(height: 28),
+              const SizedBox(height: 12),
 
-          // --- Slide-in form fields ---
-          FadeTransition(
-            opacity: _fadeAnim,
-            child: SlideTransition(
-              position: _slideAnim,
-              child: Column(
-                children: [
-                  TextField(
-                    controller: _usernameController,
-                    decoration: InputDecoration(
-                      hintText: 'Username',
-                      prefixIcon: const Icon(Icons.person_outline),
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(8.0),
-                      ),
-                    ),
+              if (_error != null)
+                Container(
+                  padding: const EdgeInsets.all(10),
+                  decoration: BoxDecoration(
+                    color: theme.colorScheme.errorContainer,
+                    borderRadius: BorderRadius.circular(8),
                   ),
-                  const SizedBox(height: 12),
-                  TextField(
-                    controller: _passwordController,
-                    obscureText: true,
-                    decoration: InputDecoration(
-                      hintText: 'Password',
-                      prefixIcon: const Icon(Icons.lock_outline),
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(8.0),
-                      ),
-                    ),
+                  child: Text(
+                    _error!,
+                    style: TextStyle(color: theme.colorScheme.onErrorContainer),
                   ),
-                  const SizedBox(height: 24),
-                  SizedBox(
-                    width: double.infinity,
-                    child: _HoverSignInButton(
-                      onLogIn: () {
-                        widget.onLogIn(Credentials(
-                          _usernameController.value.text,
-                          _passwordController.value.text,
-                        ));
-                      },
-                    ),
-                  ),
-                ],
+                ),
+
+              const SizedBox(height: 16),
+
+              FilledButton.icon(
+                onPressed: _loading ? null : _submit,
+                icon: _loading
+                    ? const SizedBox(
+                  width: 18,
+                  height: 18,
+                  child: CircularProgressIndicator(strokeWidth: 2),
+                )
+                    : const Icon(Icons.login),
+                label: const Text('Sign In'),
               ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
 
-/// Sign-in button with hover glow + scale.
-class _HoverSignInButton extends StatefulWidget {
-  final VoidCallback onLogIn;
-  const _HoverSignInButton({required this.onLogIn});
+              const SizedBox(height: 12),
 
-  @override
-  State<_HoverSignInButton> createState() => _HoverSignInButtonState();
-}
-
-class _HoverSignInButtonState extends State<_HoverSignInButton>
-    with SingleTickerProviderStateMixin {
-  bool _isHovered = false;
-  late AnimationController _ctrl;
-  late Animation<double> _scale;
-
-  @override
-  void initState() {
-    super.initState();
-    _ctrl = AnimationController(
-        vsync: this, duration: const Duration(milliseconds: 150));
-    _scale = Tween<double>(begin: 1.0, end: 1.04)
-        .animate(CurvedAnimation(parent: _ctrl, curve: Curves.easeOut));
-  }
-
-  @override
-  void dispose() {
-    _ctrl.dispose();
-    super.dispose();
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    final color = Theme.of(context).colorScheme.primary;
-    return MouseRegion(
-      onEnter: (_) {
-        setState(() => _isHovered = true);
-        _ctrl.forward();
-      },
-      onExit: (_) {
-        setState(() => _isHovered = false);
-        _ctrl.reverse();
-      },
-      cursor: SystemMouseCursors.click,
-      child: AnimatedBuilder(
-        animation: _scale,
-        builder: (context, child) =>
-            Transform.scale(scale: _scale.value, child: child),
-        child: AnimatedContainer(
-          duration: const Duration(milliseconds: 200),
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(8),
-            boxShadow: _isHovered
-                ? [
-                    BoxShadow(
-                      color: color.withOpacity(0.5),
-                      blurRadius: 20,
-                      spreadRadius: 2,
-                    )
-                  ]
-                : [],
-          ),
-          child: ElevatedButton.icon(
-            icon: const Icon(Icons.login),
-            label: const Text('Sign In'),
-            style: ElevatedButton.styleFrom(
-              padding: const EdgeInsets.symmetric(vertical: 14),
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(8.0),
+              OutlinedButton.icon(
+                onPressed: () => context.go('/register'),
+                icon: const Icon(Icons.person_add_outlined),
+                label: const Text('Create Account'),
               ),
-            ),
-            onPressed: widget.onLogIn,
+            ],
           ),
         ),
       ),

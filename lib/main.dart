@@ -1,27 +1,40 @@
 import 'dart:ui';
 import 'package:flutter/material.dart';
+import 'package:firebase_core/firebase_core.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:go_router/go_router.dart';
-import 'constants.dart';
-import '../screens/screens.dart';
-import '../models/models.dart';
-import 'home.dart';
+import 'package:provider/provider.dart';
 
-void main() {
-  runApp(const CinemaScope());
+import 'firebase_options.dart';
+import 'constants.dart';
+import 'home.dart';
+import 'screens/screens.dart';
+import 'models/models.dart';
+import 'firebase/local_database.dart';
+import 'firebase/database_connection.dart';
+import 'repositories/auth_repository.dart';
+import 'repositories/favorites_repository.dart';
+import 'repositories/chat_repository.dart';
+
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
+  final db = AppDatabase(await openConnection());
+  runApp(CinemaScope(db: db));
 }
 
-/// Allows the ability to scroll by dragging with touch, mouse, and trackpad.
 class CustomScrollBehavior extends MaterialScrollBehavior {
   @override
   Set<PointerDeviceKind> get dragDevices => {
     PointerDeviceKind.touch,
     PointerDeviceKind.mouse,
-    PointerDeviceKind.trackpad
+    PointerDeviceKind.trackpad,
   };
 }
 
 class CinemaScope extends StatefulWidget {
-  const CinemaScope({super.key});
+  const CinemaScope({super.key, required this.db});
+  final AppDatabase db;
 
   @override
   State<CinemaScope> createState() => _CinemaScopeState();
@@ -31,123 +44,164 @@ class _CinemaScopeState extends State<CinemaScope> {
   ThemeMode themeMode = ThemeMode.light;
   ColorSelection colorSelected = ColorSelection.deepPurple;
 
-  /// Authentication to manage user login session
-  final CinemaScopeAuth _auth = CinemaScopeAuth();
+  late final _authRepo = AuthRepository();
+  late final _favRepo  = FavoritesRepository(db: widget.db);
+  final _chatRepo      = ChatRepository();
+  final _cartManager   = CartManager();
+  final _orderManager  = OrderManager();
 
-  /// Manage user's ticket cart for the movies they want to book.
-  final CartManager _cartManager = CartManager();
+  @override
+  void initState() {
+    super.initState();
+    // Listen to auth changes — when user logs in, init favorites with their uid
+    _authRepo.addListener(_onAuthChanged);
+  }
 
-  /// Manage user's orders submitted
-  final OrderManager _orderManager = OrderManager();
+  void _onAuthChanged() {
+    final uid = _authRepo.currentUser?.uid;
+    if (uid != null) {
+      _favRepo.setCurrentUser(uid);
+      _favRepo.init(uid);
+    } else {
+      _favRepo.setCurrentUser(null);
+    }
+  }
 
-  /// Manage user's favorite cinemas
-  final FavoriteManager _favoriteManager = FavoriteManager();
+  @override
+  void dispose() {
+    _authRepo.removeListener(_onAuthChanged);
+    super.dispose();
+  }
 
   late final _router = GoRouter(
     initialLocation: '/login',
-    refreshListenable: _auth,
+    refreshListenable: _authRepo,
     redirect: _appRedirect,
     routes: [
       GoRoute(
-          path: '/login',
-          builder: (context, state) =>
-              LoginPage(
-                  onLogIn: (Credentials credentials) async {
-                    _auth.signIn(credentials.username, credentials.password);
-                  })),
-      GoRoute(
-          path: '/:tab',
-          builder: (context, state) {
-            return Home(
-                auth: _auth,
-                cartManager: _cartManager,
-                ordersManager: _orderManager,
-                favoriteManager: _favoriteManager,
-                changeTheme: changeThemeMode,
-                changeColor: changeColor,
-                colorSelected: colorSelected,
-                tab: int.tryParse(
-                    state.pathParameters['tab'] ?? '') ?? 0);
+        path: '/login',
+        builder: (context, state) => LoginPage(
+          onLogIn: (Credentials credentials) async {
+            await _authRepo.signIn(
+              email:    credentials.username,
+              password: credentials.password,
+            );
           },
-          routes: [
-            GoRoute(
-                path: 'cinema/:id',
-                builder: (context, state) {
-                  final id =
-                      int.tryParse(state.pathParameters['id'] ?? '') ?? 0;
-                  final cinema = cinemas[id];
-                  return CinemaPage(
-                    cinema: cinema,
-                    cartManager: _cartManager,
-                    ordersManager: _orderManager,
-                    favoriteManager: _favoriteManager,
-                  );
-                }),
-          ]),
-    ],
-    errorPageBuilder: (context, state) {
-      return MaterialPage(
-        key: state.pageKey,
-        child: Scaffold(
-          body: Center(
-            child: Text(
-              state.error.toString(),
-            ),
-          ),
         ),
-      );
-    },
+      ),
+      GoRoute(
+        path: '/register',
+        builder: (context, state) => RegisterPage(
+          authRepository:    _authRepo,
+          onNavigateToLogin: () => context.go('/login'),
+        ),
+      ),
+      GoRoute(
+        path: '/:tab',
+        builder: (context, state) {
+          return Home(
+            authRepository:      _authRepo,
+            cartManager:         _cartManager,
+            ordersManager:       _orderManager,
+            favoritesRepository: _favRepo,
+            chatRepository:      _chatRepo,
+            changeTheme:         changeThemeMode,
+            changeColor:         changeColor,
+            colorSelected:       colorSelected,
+            tab: int.tryParse(state.pathParameters['tab'] ?? '') ?? 0,
+          );
+        },
+        routes: [
+          GoRoute(
+            path: 'cinema/:id',
+            builder: (context, state) {
+              final id     = int.tryParse(state.pathParameters['id'] ?? '') ?? 0;
+              final cinema = cinemas[id];
+              return CinemaPage(
+                cinema:          cinema,
+                cartManager:     _cartManager,
+                ordersManager:   _orderManager,
+                favoriteManager: _favRepo,
+              );
+            },
+          ),
+          GoRoute(
+            path: 'room/:roomId',
+            builder: (context, state) {
+              final roomId = state.pathParameters['roomId'] ?? '';
+              final title  = state.uri.queryParameters['title'] ?? 'Chat';
+              return ChatRoomPage(
+                roomId:         roomId,
+                roomTitle:      title,
+                chatRepository: _chatRepo,
+                currentUser:    _authRepo.currentUser!,
+              );
+            },
+          ),
+        ],
+      ),
+    ],
+    errorPageBuilder: (context, state) => MaterialPage(
+      key: state.pageKey,
+      child: Scaffold(body: Center(child: Text(state.error.toString()))),
+    ),
   );
 
-  Future<String?> _appRedirect(
-      BuildContext context, GoRouterState state) async {
-    final loggedIn = await _auth.loggedIn;
-    final isOnLoginPage = state.matchedLocation == '/login';
+  String? _appRedirect(BuildContext context, GoRouterState state) {
+    final loggedIn = _authRepo.isLoggedIn;
+    final location = state.matchedLocation;
 
-    // Go to /login if the user is not signed in
-    if (!loggedIn) {
+    if (!loggedIn && location != '/login' && location != '/register') {
       return '/login';
     }
-    // Go to root of app / if the user is already signed in
-    else if (loggedIn && isOnLoginPage) {
+    if (loggedIn && (location == '/login' || location == '/register')) {
       return '/${CinemaScopeTab.home.value}';
     }
-
-    // no redirect
     return null;
   }
 
   void changeThemeMode(bool useLightMode) {
-    setState(() {
-      themeMode = useLightMode
-          ? ThemeMode.light //
-          : ThemeMode.dark;
-    });
+    setState(() => themeMode = useLightMode ? ThemeMode.light : ThemeMode.dark);
   }
 
   void changeColor(int value) {
-    setState(() {
-      colorSelected = ColorSelection.values[value];
-    });
+    setState(() => colorSelected = ColorSelection.values[value]);
   }
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp.router(
-      debugShowCheckedModeBanner: false,
-      routerConfig: _router,
-      scrollBehavior: CustomScrollBehavior(),
-      themeMode: themeMode,
-      theme: ThemeData(
-        colorSchemeSeed: colorSelected.color,
-        useMaterial3: true,
-        brightness: Brightness.light,
-      ),
-      darkTheme: ThemeData(
-        colorSchemeSeed: colorSelected.color,
-        useMaterial3: true,
-        brightness: Brightness.dark,
-      ),
+    return FutureBuilder(
+      future: FirebaseAuth.instance.authStateChanges().first,
+      builder: (context, snapshot) {
+        if (snapshot.connectionState != ConnectionState.done) {
+          return const MaterialApp(
+            home: Scaffold(body: Center(child: CircularProgressIndicator())),
+          );
+        }
+        return MultiProvider(
+          providers: [
+            ChangeNotifierProvider.value(value: _authRepo),
+            ChangeNotifierProvider.value(value: _favRepo),
+            Provider.value(value: _chatRepo),
+          ],
+          child: MaterialApp.router(
+            debugShowCheckedModeBanner: false,
+            routerConfig: _router,
+            scrollBehavior: CustomScrollBehavior(),
+            themeMode: themeMode,
+            theme: ThemeData(
+              colorSchemeSeed: colorSelected.color,
+              useMaterial3: true,
+              brightness: Brightness.light,
+            ),
+            darkTheme: ThemeData(
+              colorSchemeSeed: colorSelected.color,
+              useMaterial3: true,
+              brightness: Brightness.dark,
+            ),
+          ),
+        );
+      },
     );
   }
 }

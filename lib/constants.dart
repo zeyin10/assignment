@@ -20,7 +20,8 @@ enum ColorSelection {
 enum CinemaScopeTab {
   home(0),
   orders(1),
-  account(2);
+  chat(2),
+  account(3);
 
   const CinemaScopeTab(this.value);
   final int value;

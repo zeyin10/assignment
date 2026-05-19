@@ -16,14 +16,22 @@ class BookmarksPage extends StatefulWidget {
 }
 
 class _BookmarksPageState extends State<BookmarksPage> {
+  final _scaffoldKey = GlobalKey<ScaffoldState>();
+  late List<Cinema> _favorites;
+
   @override
   void initState() {
     super.initState();
+    _favorites = List.from(widget.favoriteManager.favorites);
     widget.favoriteManager.addListener(_refresh);
   }
 
   void _refresh() {
-    if (mounted) setState(() {});
+    if (mounted) {
+      setState(() {
+        _favorites = List.from(widget.favoriteManager.favorites);
+      });
+    }
   }
 
   @override
@@ -37,12 +45,15 @@ class _BookmarksPageState extends State<BookmarksPage> {
   }
 
   void _removeFavorite(Cinema cinema) {
+    setState(() => _favorites.remove(cinema));
     widget.favoriteManager.removeFavorite(cinema);
-    ScaffoldMessenger.of(context).showSnackBar(
+
+    ScaffoldMessenger.of(_scaffoldKey.currentContext!).clearSnackBars();
+    ScaffoldMessenger.of(_scaffoldKey.currentContext!).showSnackBar(
       SnackBar(
         content: Text('${cinema.name} removed from favorites'),
         behavior: SnackBarBehavior.floating,
-        duration: const Duration(seconds: 2),
+        duration: const Duration(seconds: 3),
         action: SnackBarAction(
           label: 'Undo',
           onPressed: () => widget.favoriteManager.toggleFavorite(cinema),
@@ -53,10 +64,10 @@ class _BookmarksPageState extends State<BookmarksPage> {
 
   @override
   Widget build(BuildContext context) {
-    final favorites = widget.favoriteManager.favorites;
     final colorScheme = Theme.of(context).colorScheme;
 
     return Scaffold(
+      key: _scaffoldKey,
       appBar: AppBar(
         title: Text(
           'Favorites',
@@ -66,7 +77,7 @@ class _BookmarksPageState extends State<BookmarksPage> {
           ),
         ),
         actions: [
-          if (favorites.isNotEmpty)
+          if (_favorites.isNotEmpty)
             TextButton.icon(
               onPressed: () => _showClearConfirmation(context),
               icon: const Icon(Icons.delete_outline, size: 18),
@@ -77,9 +88,9 @@ class _BookmarksPageState extends State<BookmarksPage> {
             ),
         ],
       ),
-      body: favorites.isEmpty
+      body: _favorites.isEmpty
           ? _buildEmptyState(colorScheme)
-          : _buildFavoritesList(favorites, colorScheme),
+          : _buildFavoritesList(colorScheme),
     );
   }
 
@@ -88,11 +99,7 @@ class _BookmarksPageState extends State<BookmarksPage> {
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Icon(
-            Icons.bookmark_outline,
-            size: 72,
-            color: colorScheme.outline,
-          ),
+          Icon(Icons.bookmark_outline, size: 72, color: colorScheme.outline),
           const SizedBox(height: 16),
           Text(
             'No favorites yet',
@@ -106,23 +113,21 @@ class _BookmarksPageState extends State<BookmarksPage> {
           Text(
             'Tap the bookmark icon on any cinema\nto save it here.',
             textAlign: TextAlign.center,
-            style: TextStyle(
-              color: colorScheme.onSurfaceVariant,
-            ),
+            style: TextStyle(color: colorScheme.onSurfaceVariant),
           ),
         ],
       ),
     );
   }
 
-  Widget _buildFavoritesList(List<Cinema> favorites, ColorScheme colorScheme) {
+  Widget _buildFavoritesList(ColorScheme colorScheme) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Padding(
           padding: const EdgeInsets.fromLTRB(16, 12, 16, 4),
           child: Text(
-            '${favorites.length} saved cinema${favorites.length == 1 ? '' : 's'}',
+            '${_favorites.length} saved cinema${_favorites.length == 1 ? '' : 's'}',
             style: TextStyle(
               color: colorScheme.onSurfaceVariant,
               fontWeight: FontWeight.w500,
@@ -132,10 +137,10 @@ class _BookmarksPageState extends State<BookmarksPage> {
         Expanded(
           child: ListView.separated(
             padding: const EdgeInsets.all(16),
-            itemCount: favorites.length,
+            itemCount: _favorites.length,
             separatorBuilder: (_, __) => const SizedBox(height: 10),
             itemBuilder: (context, index) {
-              final cinema = favorites[index];
+              final cinema = _favorites[index];
               return _buildCinemaCard(cinema, colorScheme);
             },
           ),
@@ -148,6 +153,7 @@ class _BookmarksPageState extends State<BookmarksPage> {
     return Dismissible(
       key: ValueKey(cinema.id),
       direction: DismissDirection.endToStart,
+      onDismissed: (_) => _removeFavorite(cinema),
       background: Container(
         alignment: Alignment.centerRight,
         padding: const EdgeInsets.only(right: 20),
@@ -155,12 +161,8 @@ class _BookmarksPageState extends State<BookmarksPage> {
           color: colorScheme.errorContainer,
           borderRadius: BorderRadius.circular(12),
         ),
-        child: Icon(
-          Icons.delete_outline,
-          color: colorScheme.onErrorContainer,
-        ),
+        child: Icon(Icons.delete_outline, color: colorScheme.onErrorContainer),
       ),
-      onDismissed: (_) => _removeFavorite(cinema),
       child: Card(
         elevation: 1,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
@@ -207,10 +209,7 @@ class _BookmarksPageState extends State<BookmarksPage> {
       children: [
         Text(
           cinema.name,
-          style: const TextStyle(
-            fontWeight: FontWeight.bold,
-            fontSize: 15,
-          ),
+          style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 15),
           maxLines: 1,
           overflow: TextOverflow.ellipsis,
         ),
@@ -230,17 +229,13 @@ class _BookmarksPageState extends State<BookmarksPage> {
           children: [
             Icon(Icons.star_rounded, size: 14, color: Colors.amber.shade600),
             const SizedBox(width: 3),
-            Text(
-              cinema.rating.toStringAsFixed(1),
-              style: const TextStyle(fontSize: 12),
-            ),
+            Text(cinema.rating.toStringAsFixed(1),
+                style: const TextStyle(fontSize: 12)),
             const SizedBox(width: 8),
             Icon(Icons.near_me, size: 12, color: colorScheme.outline),
             const SizedBox(width: 3),
-            Text(
-              '${cinema.distance.toStringAsFixed(1)} mi',
-              style: TextStyle(fontSize: 12, color: colorScheme.outline),
-            ),
+            Text('${cinema.distance.toStringAsFixed(1)} mi',
+                style: TextStyle(fontSize: 12, color: colorScheme.outline)),
           ],
         ),
       ],
@@ -257,11 +252,7 @@ class _BookmarksPageState extends State<BookmarksPage> {
           tooltip: 'Remove from favorites',
           onPressed: () => _removeFavorite(cinema),
         ),
-        Icon(
-          Icons.chevron_right,
-          color: colorScheme.outline,
-          size: 20,
-        ),
+        Icon(Icons.chevron_right, color: colorScheme.outline, size: 20),
       ],
     );
   }

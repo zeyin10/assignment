@@ -1,28 +1,33 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'constants.dart';
-import '../components/components.dart';
-import '../models/models.dart';
-import '../screens/screens.dart';
+import 'components/components.dart';
+import 'models/models.dart';
+import 'screens/screens.dart';
+import 'repositories/auth_repository.dart';
+import 'repositories/favorites_repository.dart';
+import 'repositories/chat_repository.dart';
 
 class Home extends StatefulWidget {
   const Home({
     super.key,
-    required this.auth,
+    required this.authRepository,
     required this.cartManager,
     required this.ordersManager,
-    required this.favoriteManager,
+    required this.favoritesRepository,
+    required this.chatRepository,
     required this.changeTheme,
     required this.changeColor,
     required this.colorSelected,
     required this.tab,
   });
 
-  final CinemaScopeAuth auth;
+  final AuthRepository authRepository;
+  final FavoritesRepository favoritesRepository;
+  final ChatRepository chatRepository;
   final int tab;
   final CartManager cartManager;
   final OrderManager ordersManager;
-  final FavoriteManager favoriteManager;
   final ColorSelection colorSelected;
   final void Function(bool useLightMode) changeTheme;
   final void Function(int value) changeColor;
@@ -35,7 +40,8 @@ class _HomeState extends State<Home> {
   @override
   void initState() {
     super.initState();
-    widget.favoriteManager.addListener(_refresh);
+    widget.favoritesRepository.addListener(_refresh);
+    widget.authRepository.addListener(_refresh);
   }
 
   void _refresh() {
@@ -44,34 +50,46 @@ class _HomeState extends State<Home> {
 
   @override
   void dispose() {
-    widget.favoriteManager.removeListener(_refresh);
+    widget.favoritesRepository.removeListener(_refresh);
+    widget.authRepository.removeListener(_refresh);
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
-    final favCount = widget.favoriteManager.count;
+    final favCount = widget.favoritesRepository.count;
+    final appUser = widget.authRepository.currentUser;
+
+    final fullName = appUser?.displayName ?? '';
+    final nameParts = fullName.trim().split(RegExp(r'\s+'));
+    final firstName = nameParts.isNotEmpty ? nameParts.first : '';
+    final lastName =
+    nameParts.length > 1 ? nameParts.sublist(1).join(' ') : '';
 
     final pages = [
       ExplorePage(
-        cartManager: widget.cartManager,
-        orderManager: widget.ordersManager,
-        favoriteManager: widget.favoriteManager,
+        cartManager:     widget.cartManager,
+        orderManager:    widget.ordersManager,
+        favoriteManager: widget.favoritesRepository,
       ),
       MyOrdersPage(orderManager: widget.ordersManager),
+      ChatListPage(
+        chatRepository: widget.chatRepository,
+        authRepository: widget.authRepository,
+      ),
       AccountPage(
         onLogOut: (logout) async {
-          widget.auth.signOut();
+          await widget.authRepository.signOut();
         },
-        favoriteManager: widget.favoriteManager,
+        favoriteManager: widget.favoritesRepository,
         user: User(
-          firstName: 'Zeyin',
-          lastName: 'A',
-          role: 'Cinema Enthusiast',
+          firstName:       firstName,
+          lastName:        lastName,
+          role:            'Cinema Enthusiast',
           profileImageUrl: 'assets/profile_pics/person_kevin.jpeg',
-          points: 250,
-          darkMode: true,
+          points:          appUser?.points ?? 0,
+          darkMode:        true,
         ),
       ),
     ];
@@ -83,7 +101,7 @@ class _HomeState extends State<Home> {
         actions: [
           ThemeButton(changeThemeMode: widget.changeTheme),
           ColorButton(
-            changeColor: widget.changeColor,
+            changeColor:   widget.changeColor,
             colorSelected: widget.colorSelected,
           ),
         ],
@@ -92,33 +110,34 @@ class _HomeState extends State<Home> {
       bottomNavigationBar: NavigationBar(
         selectedIndex: widget.tab,
         animationDuration: const Duration(milliseconds: 400),
-        onDestinationSelected: (index) {
-          context.go('/$index');
-        },
+        onDestinationSelected: (index) => context.go('/$index'),
         destinations: [
           const NavigationDestination(
-            icon: Icon(Icons.movie_outlined),
-            label: 'Discover',
+            icon:         Icon(Icons.movie_outlined),
+            label:        'Discover',
             selectedIcon: Icon(Icons.movie),
           ),
           const NavigationDestination(
-            icon: Icon(Icons.confirmation_number_outlined),
-            label: 'My Tickets',
+            icon:         Icon(Icons.confirmation_number_outlined),
+            label:        'My Tickets',
             selectedIcon: Icon(Icons.confirmation_number),
+          ),
+          const NavigationDestination(
+            icon:         Icon(Icons.chat_bubble_outline),
+            label:        'Chat',
+            selectedIcon: Icon(Icons.chat_bubble),
           ),
           NavigationDestination(
             icon: favCount > 0
                 ? Badge(
-              label: Text('$favCount'),
-              child: const Icon(Icons.person_2_outlined),
-            )
+                label: Text('$favCount'),
+                child: const Icon(Icons.person_2_outlined))
                 : const Icon(Icons.person_2_outlined),
             label: 'Account',
             selectedIcon: favCount > 0
                 ? Badge(
-              label: Text('$favCount'),
-              child: const Icon(Icons.person),
-            )
+                label: Text('$favCount'),
+                child: const Icon(Icons.person))
                 : const Icon(Icons.person),
           ),
         ],

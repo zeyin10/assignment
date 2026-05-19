@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "147945602823",
+    "project_id": "cinemaskope-42c3e",
+    "storage_bucket": "cinemaskope-42c3e.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:147945602823:android:1b23ae08dc70233a630fa2",
+        "android_client_info": {
+          "package_name": "com.example.chapter_9"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAqpZfaIJzfu7MhAAk32jItK7YwcCfAxWg"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

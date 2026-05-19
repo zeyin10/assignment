@@ -3,7 +3,7 @@ import 'package:url_launcher/url_launcher.dart';
 import '../models/models.dart';
 import 'bookmarks_page.dart';
 
-typedef LogoutCallback = void Function(bool didLogout);
+typedef LogoutCallback = Future<void> Function(bool didLogout);
 
 class AccountPage extends StatefulWidget {
   final User user;
@@ -85,7 +85,9 @@ class AccountPageState extends State<AccountPage> {
                       radius: 60,
                       backgroundColor: colorScheme.primaryContainer,
                       child: Text(
-                        widget.user.firstName[0],
+                        widget.user.firstName.isNotEmpty
+                            ? widget.user.firstName[0]
+                            : '?',
                         style: TextStyle(
                           fontSize: 40,
                           color: colorScheme.onPrimaryContainer,
@@ -99,37 +101,27 @@ class AccountPageState extends State<AccountPage> {
           ),
           const SizedBox(height: 16),
           Text(
-            '${widget.user.firstName} ${widget.user.lastName}',
-            style: const TextStyle(
-              fontSize: 24,
-              fontWeight: FontWeight.bold,
-            ),
+            '${widget.user.firstName} ${widget.user.lastName}'.trim(),
+            style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
           ),
           const SizedBox(height: 4),
           Text(
             widget.user.role,
-            style: TextStyle(
-              color: colorScheme.onSurfaceVariant,
-              fontSize: 15,
-            ),
+            style: TextStyle(color: colorScheme.onSurfaceVariant, fontSize: 15),
           ),
           const SizedBox(height: 14),
           Row(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              _buildStatChip(
-                context,
-                icon: Icons.star_rounded,
-                label: '${widget.user.points} pts',
-                color: Colors.amber.shade600,
-              ),
+              _buildStatChip(context,
+                  icon: Icons.star_rounded,
+                  label: '${widget.user.points} pts',
+                  color: Colors.amber.shade600),
               const SizedBox(width: 12),
-              _buildStatChip(
-                context,
-                icon: Icons.bookmark,
-                label: '${widget.favoriteManager.count} saved',
-                color: colorScheme.primary,
-              ),
+              _buildStatChip(context,
+                  icon: Icons.bookmark,
+                  label: '${widget.favoriteManager.count} saved',
+                  color: colorScheme.primary),
             ],
           ),
         ],
@@ -137,12 +129,11 @@ class AccountPageState extends State<AccountPage> {
     );
   }
 
-  Widget _buildStatChip(
-      BuildContext context, {
-        required IconData icon,
-        required String label,
-        required Color color,
-      }) {
+  Widget _buildStatChip(BuildContext context, {
+    required IconData icon,
+    required String label,
+    required Color color,
+  }) {
     final colorScheme = Theme.of(context).colorScheme;
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
@@ -155,10 +146,8 @@ class AccountPageState extends State<AccountPage> {
         children: [
           Icon(icon, size: 16, color: color),
           const SizedBox(width: 6),
-          Text(
-            label,
-            style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 13),
-          ),
+          Text(label,
+              style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 13)),
         ],
       ),
     );
@@ -173,15 +162,12 @@ class AccountPageState extends State<AccountPage> {
         children: [
           Padding(
             padding: const EdgeInsets.fromLTRB(4, 8, 4, 8),
-            child: Text(
-              'My Activity',
-              style: TextStyle(
-                fontWeight: FontWeight.bold,
-                fontSize: 13,
-                color: colorScheme.onSurfaceVariant,
-                letterSpacing: 0.8,
-              ),
-            ),
+            child: Text('My Activity',
+                style: TextStyle(
+                    fontWeight: FontWeight.bold,
+                    fontSize: 13,
+                    color: colorScheme.onSurfaceVariant,
+                    letterSpacing: 0.8)),
           ),
           _buildMenuCard(context, [
             _MenuTile(
@@ -195,28 +181,22 @@ class AccountPageState extends State<AccountPage> {
                   ? widget.favoriteManager.count
                   : null,
               onTap: () {
-                Navigator.of(context).push(
-                  MaterialPageRoute(
-                    builder: (_) => BookmarksPage(
-                      favoriteManager: widget.favoriteManager,
-                    ),
-                  ),
-                );
+                Navigator.of(context).push(MaterialPageRoute(
+                  builder: (_) =>
+                      BookmarksPage(favoriteManager: widget.favoriteManager),
+                ));
               },
             ),
           ]),
           const SizedBox(height: 8),
           Padding(
             padding: const EdgeInsets.fromLTRB(4, 8, 4, 8),
-            child: Text(
-              'General',
-              style: TextStyle(
-                fontWeight: FontWeight.bold,
-                fontSize: 13,
-                color: colorScheme.onSurfaceVariant,
-                letterSpacing: 0.8,
-              ),
-            ),
+            child: Text('General',
+                style: TextStyle(
+                    fontWeight: FontWeight.bold,
+                    fontSize: 13,
+                    color: colorScheme.onSurfaceVariant,
+                    letterSpacing: 0.8)),
           ),
           _buildMenuCard(context, [
             _MenuTile(
@@ -233,7 +213,9 @@ class AccountPageState extends State<AccountPage> {
               iconColor: colorScheme.error,
               title: 'Log out',
               subtitle: 'Sign out of your account',
-              onTap: () => widget.onLogOut(true),
+              onTap: () async {
+                await widget.onLogOut(true);
+              },
             ),
           ]),
         ],
@@ -265,17 +247,11 @@ class AccountPageState extends State<AccountPage> {
                   ),
                   child: Icon(tile.icon, color: tile.iconColor, size: 20),
                 ),
-                title: Text(
-                  tile.title,
-                  style: const TextStyle(fontWeight: FontWeight.w600),
-                ),
-                subtitle: Text(
-                  tile.subtitle,
-                  style: TextStyle(
-                    fontSize: 12,
-                    color: colorScheme.onSurfaceVariant,
-                  ),
-                ),
+                title: Text(tile.title,
+                    style: const TextStyle(fontWeight: FontWeight.w600)),
+                subtitle: Text(tile.subtitle,
+                    style: TextStyle(
+                        fontSize: 12, color: colorScheme.onSurfaceVariant)),
                 trailing: Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
@@ -287,31 +263,24 @@ class AccountPageState extends State<AccountPage> {
                           color: colorScheme.primary,
                           borderRadius: BorderRadius.circular(12),
                         ),
-                        child: Text(
-                          '${tile.badge}',
-                          style: TextStyle(
-                            color: colorScheme.onPrimary,
-                            fontSize: 12,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
+                        child: Text('${tile.badge}',
+                            style: TextStyle(
+                                color: colorScheme.onPrimary,
+                                fontSize: 12,
+                                fontWeight: FontWeight.bold)),
                       ),
                     const SizedBox(width: 4),
-                    Icon(
-                      Icons.chevron_right,
-                      color: colorScheme.outline,
-                      size: 20,
-                    ),
+                    Icon(Icons.chevron_right,
+                        color: colorScheme.outline, size: 20),
                   ],
                 ),
                 onTap: tile.onTap,
               ),
               if (i < tiles.length - 1)
                 Divider(
-                  height: 1,
-                  indent: 68,
-                  color: colorScheme.outlineVariant.withOpacity(0.5),
-                ),
+                    height: 1,
+                    indent: 68,
+                    color: colorScheme.outlineVariant.withOpacity(0.5)),
             ],
           );
         }).toList(),
