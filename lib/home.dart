@@ -106,7 +106,25 @@ class _HomeState extends State<Home> {
           ),
         ],
       ),
-      body: IndexedStack(index: widget.tab, children: pages),
+      body: AnimatedSwitcher(
+        duration: const Duration(milliseconds: 350),
+        switchInCurve: Curves.easeOutCubic,
+        switchOutCurve: Curves.easeInCubic,
+        transitionBuilder: (child, animation) {
+          final slide = Tween<Offset>(
+            begin: const Offset(0.04, 0),
+            end: Offset.zero,
+          ).animate(CurvedAnimation(parent: animation, curve: Curves.easeOutCubic));
+          return SlideTransition(
+            position: slide,
+            child: FadeTransition(opacity: animation, child: child),
+          );
+        },
+        child: KeyedSubtree(
+          key: ValueKey<int>(widget.tab),
+          child: pages[widget.tab],
+        ),
+      ),
       bottomNavigationBar: NavigationBar(
         selectedIndex: widget.tab,
         animationDuration: const Duration(milliseconds: 400),

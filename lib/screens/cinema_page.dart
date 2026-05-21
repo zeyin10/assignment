@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import '../animations/animations.dart';
 import '../components/components.dart';
 import '../constants.dart';
 import '../models/models.dart';
@@ -90,14 +91,20 @@ class _CinemaPageState extends State<CinemaPage> {
             padding: const EdgeInsets.only(left: 16.0, right: 16.0, top: 64.0),
             child: Stack(
               children: [
-                Container(
-                  margin: const EdgeInsets.only(bottom: 30.0),
-                  decoration: BoxDecoration(
-                    color: Colors.grey,
-                    borderRadius: BorderRadius.circular(16.0),
-                    image: DecorationImage(
-                      image: AssetImage(widget.cinema.imageUrl),
-                      fit: BoxFit.cover,
+                Hero(
+                  tag: HeroTags.cinemaImage(widget.cinema.id),
+                  child: Material(
+                    type: MaterialType.transparency,
+                    child: Container(
+                      margin: const EdgeInsets.only(bottom: 30.0),
+                      decoration: BoxDecoration(
+                        color: Colors.grey,
+                        borderRadius: BorderRadius.circular(16.0),
+                        image: DecorationImage(
+                          image: AssetImage(widget.cinema.imageUrl),
+                          fit: BoxFit.cover,
+                        ),
+                      ),
                     ),
                   ),
                 ),
@@ -140,7 +147,7 @@ class _CinemaPageState extends State<CinemaPage> {
     final item = widget.cinema.items[index];
     return InkWell(
       onTap: () => _showBottomSheet(item),
-      child: CinemaItem(item: item),
+      child: CinemaItem(item: item, cinemaId: widget.cinema.id),
     );
   }
 

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../animations/animations.dart';
 import '../models/app_user.dart';
 import '../models/message.dart';
 import '../repositories/chat_repository.dart';
@@ -27,12 +28,12 @@ class _ChatListPageState extends State<ChatListPage> {
     if (me == null) return;
     Navigator.push(
       context,
-      MaterialPageRoute(
-        builder: (_) => ChatRoomPage(
-          roomId:         room.id,
-          roomTitle:      _roomTitle(room),
+      slidePageRoute(
+        ChatRoomPage(
+          roomId: room.id,
+          roomTitle: _roomTitle(room),
           chatRepository: widget.chatRepository,
-          currentUser:    me,
+          currentUser: me,
         ),
       ),
     );

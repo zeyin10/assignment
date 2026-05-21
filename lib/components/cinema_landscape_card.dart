@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../animations/animations.dart';
 import '../models/models.dart';
 
 class CinemaLandscapeCard extends StatefulWidget {
@@ -89,7 +90,16 @@ class _CinemaLandscapeCardState extends State<CinemaLandscapeCard>
                   child: Stack(
                     fit: StackFit.expand,
                     children: [
-                      Image.asset(widget.cinema.imageUrl, fit: BoxFit.cover),
+                      Hero(
+                        tag: HeroTags.cinemaImage(widget.cinema.id),
+                        child: Material(
+                          type: MaterialType.transparency,
+                          child: Image.asset(
+                            widget.cinema.imageUrl,
+                            fit: BoxFit.cover,
+                          ),
+                        ),
+                      ),
                       Positioned(
                         top: 4.0,
                         right: 4.0,

@@ -15,6 +15,7 @@ import 'firebase/database_connection.dart';
 import 'repositories/auth_repository.dart';
 import 'repositories/favorites_repository.dart';
 import 'repositories/chat_repository.dart';
+import 'animations/animations.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -80,61 +81,74 @@ class _CinemaScopeState extends State<CinemaScope> {
     routes: [
       GoRoute(
         path: '/login',
-        builder: (context, state) => LoginPage(
-          onLogIn: (Credentials credentials) async {
-            await _authRepo.signIn(
-              email:    credentials.username,
-              password: credentials.password,
-            );
-          },
+        pageBuilder: (context, state) => scaleFadePage(
+          key: state.pageKey,
+          child: LoginPage(
+            onLogIn: (Credentials credentials) async {
+              await _authRepo.signIn(
+                email: credentials.username,
+                password: credentials.password,
+              );
+            },
+          ),
         ),
       ),
       GoRoute(
         path: '/register',
-        builder: (context, state) => RegisterPage(
-          authRepository:    _authRepo,
-          onNavigateToLogin: () => context.go('/login'),
+        pageBuilder: (context, state) => fadeSlidePage(
+          key: state.pageKey,
+          child: RegisterPage(
+            authRepository: _authRepo,
+            onNavigateToLogin: () => context.go('/login'),
+          ),
         ),
       ),
       GoRoute(
         path: '/:tab',
-        builder: (context, state) {
-          return Home(
-            authRepository:      _authRepo,
-            cartManager:         _cartManager,
-            ordersManager:       _orderManager,
+        pageBuilder: (context, state) => fadeSlidePage(
+          key: state.pageKey,
+          child: Home(
+            authRepository: _authRepo,
+            cartManager: _cartManager,
+            ordersManager: _orderManager,
             favoritesRepository: _favRepo,
-            chatRepository:      _chatRepo,
-            changeTheme:         changeThemeMode,
-            changeColor:         changeColor,
-            colorSelected:       colorSelected,
+            chatRepository: _chatRepo,
+            changeTheme: changeThemeMode,
+            changeColor: changeColor,
+            colorSelected: colorSelected,
             tab: int.tryParse(state.pathParameters['tab'] ?? '') ?? 0,
-          );
-        },
+          ),
+        ),
         routes: [
           GoRoute(
             path: 'cinema/:id',
-            builder: (context, state) {
-              final id     = int.tryParse(state.pathParameters['id'] ?? '') ?? 0;
+            pageBuilder: (context, state) {
+              final id = int.tryParse(state.pathParameters['id'] ?? '') ?? 0;
               final cinema = cinemas[id];
-              return CinemaPage(
-                cinema:          cinema,
-                cartManager:     _cartManager,
-                ordersManager:   _orderManager,
-                favoriteManager: _favRepo,
+              return slideUpPage(
+                key: state.pageKey,
+                child: CinemaPage(
+                  cinema: cinema,
+                  cartManager: _cartManager,
+                  ordersManager: _orderManager,
+                  favoriteManager: _favRepo,
+                ),
               );
             },
           ),
           GoRoute(
             path: 'room/:roomId',
-            builder: (context, state) {
+            pageBuilder: (context, state) {
               final roomId = state.pathParameters['roomId'] ?? '';
-              final title  = state.uri.queryParameters['title'] ?? 'Chat';
-              return ChatRoomPage(
-                roomId:         roomId,
-                roomTitle:      title,
-                chatRepository: _chatRepo,
-                currentUser:    _authRepo.currentUser!,
+              final title = state.uri.queryParameters['title'] ?? 'Chat';
+              return fadeSlidePage(
+                key: state.pageKey,
+                child: ChatRoomPage(
+                  roomId: roomId,
+                  roomTitle: title,
+                  chatRepository: _chatRepo,
+                  currentUser: _authRepo.currentUser!,
+                ),
               );
             },
           ),
@@ -174,8 +188,13 @@ class _CinemaScopeState extends State<CinemaScope> {
       future: FirebaseAuth.instance.authStateChanges().first,
       builder: (context, snapshot) {
         if (snapshot.connectionState != ConnectionState.done) {
-          return const MaterialApp(
-            home: Scaffold(body: Center(child: CircularProgressIndicator())),
+          return MaterialApp(
+            home: Scaffold(
+              body: CinemaScopeLoader(
+                message: 'Starting CinemaScope…',
+                useLottie: true,
+              ),
+            ),
           );
         }
         return MultiProvider(

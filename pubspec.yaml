@@ -27,6 +27,7 @@ dependencies:
   provider: ^6.1.0
   intl: ^0.19.0
   shared_preferences: ^2.2.2
+  lottie: ^3.1.0
 
 dev_dependencies:
   flutter_test:
@@ -55,3 +56,4 @@ flutter:
     - assets/profile_pics/
     - assets/login_background.webp
     - assets/app_icon.jpg
+    - assets/animations/

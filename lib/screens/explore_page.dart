@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../animations/animations.dart';
 import '../api/mock_cinema_service.dart';
 import '../components/components.dart';
 import '../models/models.dart';
@@ -226,7 +227,10 @@ class _ExplorePageState extends State<ExplorePage> {
             ],
           );
         } else {
-          return const Center(child: CircularProgressIndicator());
+          return const CinemaScopeLoader(
+            message: 'Discovering cinemas…',
+            useLottie: true,
+          );
         }
       },
     );

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../animations/animations.dart';
 import '../repositories/auth_repository.dart';
 
 class RegisterPage extends StatefulWidget {
@@ -150,24 +151,35 @@ class _RegisterPageState extends State<RegisterPage> {
                 const SizedBox(height: 24),
 
                 // Register button
-                FilledButton.icon(
+                AnimatedScaleButton(
+                  enabled: !_loading,
                   onPressed: _loading ? null : _submit,
-                  icon: _loading
-                      ? const SizedBox(
-                    width: 18,
-                    height: 18,
-                    child: CircularProgressIndicator(strokeWidth: 2),
-                  )
-                      : const Icon(Icons.check),
-                  label: const Text('Create Account'),
+                  child: FilledButton.icon(
+                    onPressed: _loading ? null : _submit,
+                    icon: _loading
+                        ? const SizedBox(
+                            width: 18,
+                            height: 18,
+                            child: CircularProgressIndicator(strokeWidth: 2),
+                          )
+                        : const Icon(Icons.check),
+                    label: const Text('Create Account'),
+                  ),
                 ),
+
+                if (_loading) ...[
+                  const SizedBox(height: 20),
+                  const LottieLoadingIndicator(size: 72),
+                ],
 
                 const SizedBox(height: 12),
 
-                // Back to login
-                TextButton(
+                AnimatedScaleButton(
                   onPressed: widget.onNavigateToLogin,
-                  child: const Text('Already have an account? Sign in'),
+                  child: TextButton(
+                    onPressed: widget.onNavigateToLogin,
+                    child: const Text('Already have an account? Sign in'),
+                  ),
                 ),
               ],
             ),

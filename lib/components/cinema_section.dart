@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import '../animations/animations.dart';
 import '../components/components.dart';
 import '../models/models.dart';
 import '../constants.dart';
@@ -25,11 +26,14 @@ class CinemaSection extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Padding(
-            padding: EdgeInsets.only(left: 16.0, bottom: 8.0),
-            child: Text(
-              'Cinemas near me',
-              style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+          SlideFadeIn(
+            index: 0,
+            child: Padding(
+              padding: EdgeInsets.only(left: 16.0, bottom: 8.0),
+              child: Text(
+                'Cinemas near me',
+                style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+              ),
             ),
           ),
           if (cinemas.isEmpty)
@@ -47,7 +51,10 @@ class CinemaSection extends StatelessWidget {
                 scrollDirection: Axis.horizontal,
                 itemCount: cinemas.length,
                 itemBuilder: (context, index) {
-                  return SizedBox(
+                  return SlideFadeIn(
+                    index: index + 1,
+                    offset: const Offset(0.12, 0),
+                    child: SizedBox(
                     width: 300,
                     child: CinemaLandscapeCard(
                       cinema: cinemas[index],
@@ -56,6 +63,7 @@ class CinemaSection extends StatelessWidget {
                         context.go('/${CinemaScopeTab.home.value}/cinema/${cinemas[index].id}');
                       },
                     ),
+                  ),
                   );
                 },
               ),

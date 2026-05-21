@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
+import '../animations/animations.dart';
 import '../models/models.dart';
 
 class CinemaItem extends StatelessWidget {
   final MovieTicket item;
+  final String? cinemaId;
 
-  const CinemaItem({Key? key, required this.item}) : super(key: key);
+  const CinemaItem({Key? key, required this.item, this.cinemaId}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
@@ -66,18 +68,19 @@ class CinemaItem extends StatelessWidget {
   }
 
   Widget _buildImage() {
+    final image = Image.network(item.imageUrl, fit: BoxFit.cover);
+    final clipped = ClipRRect(
+      borderRadius: BorderRadius.circular(4),
+      child: AspectRatio(aspectRatio: 1.0, child: image),
+    );
     return Padding(
       padding: const EdgeInsets.all(16.0),
-      child: ClipRRect(
-        borderRadius: BorderRadius.circular(4),
-        child: AspectRatio(
-          aspectRatio: 1.0,
-          child: Image.network(
-            item.imageUrl,
-            fit: BoxFit.cover,
-          ),
-        ),
-      ),
+      child: cinemaId != null
+          ? Hero(
+              tag: HeroTags.ticketImage(cinemaId!, item.name),
+              child: Material(type: MaterialType.transparency, child: clipped),
+            )
+          : clipped,
     );
   }
 
@@ -88,12 +91,16 @@ class CinemaItem extends StatelessWidget {
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 4.0),
         decoration: BoxDecoration(
-          color: colorScheme.onPrimary,
+          color: colorScheme.primary,
           borderRadius: BorderRadius.circular(16.0),
         ),
-        child: const Text(
+        child: Text(
           'Book',
-          style: TextStyle(fontSize: 12.0, fontWeight: FontWeight.bold),
+          style: TextStyle(
+            fontSize: 12.0,
+            fontWeight: FontWeight.bold,
+            color: colorScheme.onPrimary,
+          ),
         ),
       ),
     );

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import '../animations/animations.dart';
 
 class Credentials {
   Credentials(this.username, this.password);
@@ -104,21 +105,32 @@ class _LoginFormState extends State<LoginForm> {
             mainAxisAlignment: MainAxisAlignment.center,
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              Icon(Icons.movie_filter_rounded,
-                  size: 72, color: theme.colorScheme.primary),
+              SlideFadeIn(
+                index: 0,
+                child: Icon(Icons.movie_filter_rounded,
+                    size: 72, color: theme.colorScheme.primary),
+              ),
               const SizedBox(height: 16),
-              Text('CinemaScope',
-                  textAlign: TextAlign.center,
-                  style: theme.textTheme.headlineMedium?.copyWith(
-                    color: theme.colorScheme.primary,
-                    fontWeight: FontWeight.bold,
-                  )),
-              Text('Your world of movies',
-                  textAlign: TextAlign.center,
-                  style: theme.textTheme.bodyMedium),
+              SlideFadeIn(
+                index: 1,
+                child: Text('CinemaScope',
+                    textAlign: TextAlign.center,
+                    style: theme.textTheme.headlineMedium?.copyWith(
+                      color: theme.colorScheme.primary,
+                      fontWeight: FontWeight.bold,
+                    )),
+              ),
+              SlideFadeIn(
+                index: 2,
+                child: Text('Your world of movies',
+                    textAlign: TextAlign.center,
+                    style: theme.textTheme.bodyMedium),
+              ),
               const SizedBox(height: 40),
 
-              TextField(
+              SlideFadeIn(
+                index: 3,
+                child: TextField(
                 controller: _usernameController,
                 keyboardType: TextInputType.emailAddress,
                 decoration: const InputDecoration(
@@ -127,9 +139,12 @@ class _LoginFormState extends State<LoginForm> {
                   border: OutlineInputBorder(),
                 ),
               ),
+              ),
               const SizedBox(height: 16),
 
-              TextField(
+              SlideFadeIn(
+                index: 4,
+                child: TextField(
                 controller: _passwordController,
                 obscureText: true,
                 decoration: const InputDecoration(
@@ -138,6 +153,7 @@ class _LoginFormState extends State<LoginForm> {
                   border: OutlineInputBorder(),
                 ),
                 onSubmitted: (_) => _submit(),
+              ),
               ),
               const SizedBox(height: 12),
 
@@ -156,24 +172,42 @@ class _LoginFormState extends State<LoginForm> {
 
               const SizedBox(height: 16),
 
-              FilledButton.icon(
-                onPressed: _loading ? null : _submit,
-                icon: _loading
-                    ? const SizedBox(
-                  width: 18,
-                  height: 18,
-                  child: CircularProgressIndicator(strokeWidth: 2),
-                )
-                    : const Icon(Icons.login),
-                label: const Text('Sign In'),
+              SlideFadeIn(
+                index: 5,
+                child: AnimatedScaleButton(
+                  enabled: !_loading,
+                  onPressed: _loading ? null : _submit,
+                  child: FilledButton.icon(
+                    onPressed: _loading ? null : _submit,
+                    icon: _loading
+                        ? const SizedBox(
+                            width: 18,
+                            height: 18,
+                            child: CircularProgressIndicator(strokeWidth: 2),
+                          )
+                        : const Icon(Icons.login),
+                    label: Text(_loading ? 'Signing in…' : 'Sign In'),
+                  ),
+                ),
               ),
+
+              if (_loading) ...[
+                const SizedBox(height: 24),
+                const LottieLoadingIndicator(size: 80),
+              ],
 
               const SizedBox(height: 12),
 
-              OutlinedButton.icon(
-                onPressed: () => context.go('/register'),
-                icon: const Icon(Icons.person_add_outlined),
-                label: const Text('Create Account'),
+              SlideFadeIn(
+                index: 6,
+                child: AnimatedScaleButton(
+                  onPressed: () => context.go('/register'),
+                  child: OutlinedButton.icon(
+                    onPressed: () => context.go('/register'),
+                    icon: const Icon(Icons.person_add_outlined),
+                    label: const Text('Create Account'),
+                  ),
+                ),
               ),
             ],
           ),

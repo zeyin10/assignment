@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
+import '../animations/animations.dart';
 import '../models/models.dart';
 import 'bookmarks_page.dart';
 
@@ -181,10 +182,11 @@ class AccountPageState extends State<AccountPage> {
                   ? widget.favoriteManager.count
                   : null,
               onTap: () {
-                Navigator.of(context).push(MaterialPageRoute(
-                  builder: (_) =>
-                      BookmarksPage(favoriteManager: widget.favoriteManager),
-                ));
+                Navigator.of(context).push(
+                  slidePageRoute(
+                    BookmarksPage(favoriteManager: widget.favoriteManager),
+                  ),
+                );
               },
             ),
           ]),
